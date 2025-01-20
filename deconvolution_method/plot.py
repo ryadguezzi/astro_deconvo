@@ -17,12 +17,12 @@ def plot_original_blurred_images(original_image, blurred_image, name):
     """Plot the original and blurred images"""
     plt.figure(figsize=(10, 5))
     plt.subplot(1, 2, 1)
-    plt.title("Image originale")
+    plt.title("Original image")
     plt.imshow(original_image, cmap='gray')
     plt.axis('off')
 
     plt.subplot(1, 2, 2)
-    plt.title("Image floue")
+    plt.title("Blurred image")
     plt.imshow(blurred_image, cmap='gray')
     plt.axis('off')
     plt.savefig(f'./images/blurred/{name}.png')
@@ -31,12 +31,26 @@ def plot_blurred_deblurred_images(blurred_image, deblurred_image, name):
     """Plot the blurred and deblurred images"""
     plt.figure(figsize=(10, 5))
     plt.subplot(1, 2, 1)
-    plt.title("Image floue")
+    plt.title("Blurred image")
     plt.imshow(blurred_image, cmap='gray')
     plt.axis('off')
 
     plt.subplot(1, 2, 2)
-    plt.title("Image défloutée")
+    plt.title("Deblurred image")
     plt.imshow( deblurred_image, cmap='gray')
     plt.axis('off')
     plt.savefig(f'./images/deblurred/{name}.png')
+
+def plot_original_deblurred_images(original_image, deblurred_image, name):
+    """Plot the blurred and deblurred images"""
+    plt.figure(figsize=(10, 5))
+    plt.subplot(1, 2, 1)
+    plt.title("Original image")
+    plt.imshow(original_image, cmap='gray')
+    plt.axis('off')
+
+    plt.subplot(1, 2, 2)
+    plt.title("Deblurred image")
+    plt.imshow( deblurred_image, cmap='gray')
+    plt.axis('off')
+    plt.savefig(f'./images/deblurred/{name}_2.png')
