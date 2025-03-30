@@ -443,7 +443,7 @@ def find_parameters(image, verbose=False):
     if verbose :
         print("Plotting cost function landscape")
         plot_landscape('structural_similarity')
-    print(f"Estimated Moffat PSF Parameters for SSIM cost:")
+    print(f"Estimated Moffat PSF Parameters for SSIM cost")
     results_per_patch, _= comprehensive_psf_estimation_per_patch(image)
     coefficient = plot_parameter_vs_radial_distance_per_method(results_per_patch, image.shape)
     print("Keepig only results from differential evolution method")

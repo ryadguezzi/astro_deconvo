@@ -66,5 +66,7 @@ if __name__ == "__main__":
                 k_alpha=0.1, k_beta=0.02,
                 beta_min=2.5, alpha_max=6)
     print("Starting deconvolution")
-    richardson_deconvolved_images = deconvolution_richardson_methods(blurred_image, moffat_generator, original_image=original_image, kernel_size=15, step=20, iterations = 20)
-    wiener_deconvolved_images = deconvolution_wiener_methods(blurred_image, moffat_generator, original_image=original_image, kernel_size=15, step=20)
+    richardson_deconvolved_images = deconvolution_richardson_methods(
+        blurred_image, moffat_generator, original_image=original_image, kernel_size=15, step=20, iterations = 20)
+    wiener_deconvolved_images = deconvolution_wiener_methods(
+        blurred_image, moffat_generator, original_image=original_image, kernel_size=15, step=20)

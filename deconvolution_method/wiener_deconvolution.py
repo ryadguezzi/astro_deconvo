@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from skimage.restoration import unsupervised_wiener, wiener
+from skimage.restoration import unsupervised_wiener, wiener, denoise_bilateral, denoise_tv_chambolle
 from pre_processing import renormalize_to_minus_one_to_one
 from performance_evaluation import compute_psnr, compute_ssim
 
@@ -124,120 +124,6 @@ def sectional_wiener_deconvolution(blurred_image, psf_generator, kernel_size=15,
     
     return estimate
 
-def improved_sectional_wiener_deconvolution(blurred_image, psf_generator, kernel_size=15, step=None, 
-                                           iterations=2, noise_level=0.01, overlap_factor=2):
-    """
-    Apply improved sectional Wiener deconvolution to a spatially variant blurred image
-    with better handling of artifacts
-    
-    Parameters:
-    - blurred_image: 2D array, blurred input image
-    - psf_generator: function that generates PSF for a specific position
-    - kernel_size: size of the PSF kernels (odd number)
-    - step: step size for sampling PSFs (if None, use kernel_size//overlap_factor)
-    - noise_level: estimate of the noise level for the Wiener filter (0.01-0.1 typically works well)
-    - iterations: number of refinement iterations
-    - overlap_factor: controls patch overlap (higher = more overlap)
-    
-    Returns:
-    - deconvolved image
-    """
-    import numpy as np
-    from skimage.restoration import wiener
-    
-    # Define a function for Wiener filter with better noise handling
-    def robust_wiener(image, psf, noise_level=noise_level):
-        # Normalize PSF
-        psf = psf / np.sum(psf)
-        
-        # Apply Wiener filter
-        print(image.shape, psf.shape, noise_level)
-        deconvolved = wiener(image, psf, noise_level)
-        
-        # Apply mild bilateral filter to reduce ringing
-        try:
-            from skimage.restoration import denoise_bilateral
-            deconvolved = denoise_bilateral(deconvolved, sigma_color=0.05, sigma_spatial=1.0)
-        except:
-            # Fall back if bilateral filter is not available
-            pass
-            
-        return deconvolved
-    
-    # Calculate step size for overlapping patches
-    if step is None:
-        step = max(kernel_size // overlap_factor, 1)
-    
-    h, w = blurred_image.shape
-    pad = kernel_size // 2
-    
-    # Use a Gaussian window for better blending between patches
-    def gaussian_window(size):
-        x = np.linspace(-1, 1, size)
-        y = np.linspace(-1, 1, size)
-        X, Y = np.meshgrid(x, y)
-        window = np.exp(-(X**2 + Y**2) / 0.5)
-        return window
-    
-    # Create a grid of PSF sampling points with more overlap
-    y_positions = np.arange(0, h, step)
-    x_positions = np.arange(0, w, step)
-    
-    # Initial estimate is the blurred image
-    estimate = blurred_image.copy()
-    
-    # Refinement iterations
-    for iteration in range(iterations):
-        # Create a residual image and weights
-        residual = np.zeros_like(blurred_image)
-        weights = np.zeros_like(blurred_image) + 1e-10  # Small value to avoid division by zero
-        
-        # For each sampling position
-        for y_idx, cy in enumerate(y_positions):
-            for x_idx, cx in enumerate(x_positions):
-                # Generate the local PSF for this position
-                local_psf = psf_generator((kernel_size, kernel_size), cy + pad, cx + pad)
-                
-                # Ensure PSF is properly normalized
-                if np.sum(local_psf) > 0:
-                    local_psf = local_psf / np.sum(local_psf)
-                
-                # Define the region for this PSF with overlap
-                y_start = max(0, cy - pad)
-                y_end = min(h, cy + pad + step)
-                x_start = max(0, cx - pad)
-                x_end = min(w, cx + pad + step)
-                
-                # Skip very small regions
-                if (y_end - y_start) < 3 or (x_end - x_start) < 3:
-                    continue
-                
-                # Extract the local region
-                local_estimate = estimate[y_start:y_end, x_start:x_end]
-                
-                # Apply robust Wiener deconvolution
-                local_deconv = robust_wiener(local_estimate, local_psf)
-                
-                # Create position-dependent Gaussian window for smooth blending
-                window = gaussian_window(max(y_end - y_start, x_end - x_start))
-                window = window[:y_end - y_start, :x_end - x_start]
-                
-                # Add to residual and weights using Gaussian window
-                residual[y_start:y_end, x_start:x_end] += local_deconv * window
-                weights[y_start:y_end, x_start:x_end] += window
-        
-        # Update estimate using weighted average
-        estimate = residual / weights
-        
-        # Apply mild total variation regularization to reduce artifacts
-        try:
-            from skimage.restoration import denoise_tv_chambolle
-            estimate = denoise_tv_chambolle(estimate, weight=0.01)
-        except:
-            pass
-    
-    return estimate
-
 def improved_sectional_wiener_deconvolution(
     blurred_image, 
     psf_generator, 
@@ -273,10 +159,7 @@ def improved_sectional_wiener_deconvolution(
             psf = psf / np.sum(psf)
         
         deconvolved = wiener(image, psf, noise_level)
-        try:
-            deconvolved = denoise_bilateral(deconvolved, sigma_color=0.1, sigma_spatial=1.5)
-        except:
-            pass
+        deconvolved = denoise_bilateral(deconvolved, sigma_color=0.1, sigma_spatial=1.5)
         
         return deconvolved
 
@@ -330,10 +213,7 @@ def improved_sectional_wiener_deconvolution(
     estimate = residual / weights
     
     # Total variation denoising
-    try:
-        estimate = denoise_tv_chambolle(estimate, weight=0.02)
-    except :
-        pass
+    estimate = denoise_tv_chambolle(estimate, weight=0.02)
 
     
     return estimate
