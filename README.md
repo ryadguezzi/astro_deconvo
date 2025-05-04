@@ -1,7 +1,7 @@
 # Image Deconvolution Tool
 A Python-based tool for performing image deconvolution (with spatial blur) using Wiener or Richardson-Lucy techniques. The image is assumed to have a Moffat PSF (Point Spread Function) blur.
 
-## This repository contains a python library usable with the steps mentionend below. It also contains a notebook taking a slightly different approach to the problem. It was not primarly made to be a plug and play tool, but a resource to help further development. 
+**This repository contains a python library usable with the steps mentionend below. It also contains a notebook taking a slightly different approach to the problem. It was not primarly made to be a plug and play tool, but a resource to help further development.**
 
 ## Installation
 ### Prerequisites
